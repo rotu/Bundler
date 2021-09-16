@@ -11,7 +11,6 @@ import { WebManifestPlugin } from "./plugins/json/webmanifest.ts";
 import { ServiceWorkerPlugin } from "./plugins/typescript/serviceworker.ts";
 import { TypescriptTopLevelAwaitModulePlugin } from "./plugins/typescript/typescript_top_level_await_module.ts";
 import { WebWorkerPlugin } from "./plugins/typescript/webworker.ts";
-import { TerserPlugin } from "./plugins/typescript/terser.ts";
 
 const defaultPostcssPlugins: postcss.AcceptedPlugin[] = [
   postcssPresetEnv({
@@ -48,7 +47,6 @@ export function defaultPlugins({
     new WebManifestPlugin(),
     new JsonPlugin(),
 
-    new TerserPlugin(),
     new CssoPlugin(),
     new SvgoPlugin(),
   ];
