@@ -10,23 +10,21 @@ import {
   DependencyType,
   Item,
 } from "../plugin.ts";
+import { getDependencyFormat } from "../_util.ts";
 import { extractDependencies } from "./posthtml/extract_dependencies.ts";
 import { injectDependencies } from "./posthtml/inject_dependencies.ts";
 
 export class HTMLPlugin extends TextFilePlugin {
-  test(input: string, _type: DependencyType) {
-    return input.endsWith(".html");
+  test(input: string, _type: DependencyType, format: DependencyFormat) {
+    switch (format) {
+      case DependencyFormat.Html:
+        return true;
+      case DependencyFormat.Unknown:
+        return getDependencyFormat(input) === DependencyFormat.Html;
+      default:
+        return false;
+    }
   }
-  // async transformSource(
-  //   input: string,
-  //   source: string
-  // ) {
-  //   const { html } = await posthtml([
-  //     posthtmlInjectDependenciesPlugin(input),
-  //   ])
-  //     .process(source);
-  //   return html;
-  // }
 
   async createAsset(
     input: string,

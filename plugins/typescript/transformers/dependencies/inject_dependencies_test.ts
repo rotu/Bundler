@@ -1,5 +1,6 @@
 import { ConsoleLogger } from "../../../../log/console_logger.ts";
 import { assertEquals } from "../../../../test_deps.ts";
+import { newline } from "../../../../_util.ts";
 import { Chunk, DependencyFormat, DependencyType } from "../../../plugin.ts";
 import { injectDependencies } from "./inject_dependencies.ts";
 
@@ -39,7 +40,11 @@ Deno.test({
             output: "file:///dist/b.js",
           },
         ];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(result, ``);
       },
@@ -73,9 +78,13 @@ Deno.test({
             output: "file:///dist/b.js",
           },
         ];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `import * as a from "/b.js";\n`);
+        assertEquals(result, `import * as a from "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -107,9 +116,13 @@ Deno.test({
             output: "file:///dist/b.js",
           },
         ];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `import { a, b } from "/b.js";\n`);
+        assertEquals(result, `import { a, b } from "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -147,7 +160,10 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import { a as x, a as y, b } from "/b.js";\n`);
+        assertEquals(
+          result,
+          `import { a as x, a as y, b } from "/b.js";${newline}`,
+        );
       },
     });
     await t.step({
@@ -186,7 +202,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import A from "/b.js";\n`);
+        assertEquals(result, `import A from "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -224,7 +240,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import "/b.js";\n`);
+        assertEquals(result, `import "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -262,7 +278,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import("/b.js");\n`);
+        assertEquals(result, `import("/b.js");${newline}`);
       },
     });
     await t.step({
@@ -300,7 +316,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import("./" + "b.ts");\n`);
+        assertEquals(result, `import("./" + "b.ts");${newline}`);
       },
     });
   },
@@ -332,9 +348,13 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `console.log("hello world");\n`);
+        assertEquals(result, `console.log("hello world");${newline}`);
       },
     });
     await t.step({
@@ -366,7 +386,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `console.log("hello world");\n`);
+        assertEquals(result, `console.log("hello world");${newline}`);
       },
     });
     await t.step({
@@ -399,9 +419,13 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `console.log("hello world");\n`);
+        assertEquals(result, `console.log("hello world");${newline}`);
       },
     });
     await t.step({
@@ -428,9 +452,13 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `type a = string;\ntype b = a;\n`);
+        assertEquals(result, `type a = string;${newline}type b = a;${newline}`);
       },
     });
     await t.step({
@@ -457,9 +485,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nconsole.log(b);\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}console.log(b);${newline}`,
+        );
       },
     });
     await t.step({
@@ -492,9 +527,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const c = "c";\nconsole.log(c);\n`);
+        assertEquals(
+          result,
+          `const c = "c";${newline}console.log(c);${newline}`,
+        );
       },
     });
     await t.step({
@@ -527,11 +569,15 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const c = "c";\nconst mod = { c };\nconsole.log(mod);\n`,
+          `const c = "c";${newline}const mod = { c };${newline}console.log(mod);${newline}`,
         );
       },
     });
@@ -565,11 +611,15 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const x = "x";\nconsole.log(x);\n`,
+          `const x = "x";${newline}console.log(x);${newline}`,
         );
       },
     });
@@ -603,11 +653,15 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const x = "x";\nconsole.log(x);\n`,
+          `const x = "x";${newline}console.log(x);${newline}`,
         );
       },
     });
@@ -636,11 +690,15 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const x = "x";\nconst x1 = "y";\nconsole.log(x, x1);\n`,
+          `const x = "x";${newline}const x1 = "y";${newline}console.log(x, x1);${newline}`,
         );
       },
     });
@@ -668,9 +726,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nconsole.log(b);\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}console.log(b);${newline}`,
+        );
       },
     });
     await t.step({
@@ -697,9 +762,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nconsole.log(x);\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}console.log(x);${newline}`,
+        );
       },
     });
     await t.step({
@@ -732,9 +804,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nconsole.log(b);\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}console.log(b);${newline}`,
+        );
       },
     });
     await t.step({
@@ -767,9 +846,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nconsole.log(x);\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}console.log(x);${newline}`,
+        );
       },
     });
 
@@ -796,11 +882,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nconsole.log(mod);\n`,
+          `const b = "b";${newline}const mod = { b };${newline}console.log(mod);${newline}`,
         );
       },
     });
@@ -833,11 +923,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const c = "c";\nconst mod = { c };\nconst mod1 = { c };\nconsole.log(mod1);\n`,
+          `const c = "c";${newline}const mod = { c };${newline}const mod1 = { c };${newline}console.log(mod1);${newline}`,
         );
       },
     });
@@ -870,11 +964,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const c = "c";\nconst mod = { c };\nconst mod1 = { x: c };\nconsole.log(mod1);\n`,
+          `const c = "c";${newline}const mod = { c };${newline}const mod1 = { x: c };${newline}console.log(mod1);${newline}`,
         );
       },
     });
@@ -907,11 +1005,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const x = "x";\nconst mod = { c: x };\nconst mod1 = { x: c };\nconsole.log(mod1);\n`,
+          `const x = "x";${newline}const mod = { c: x };${newline}const mod1 = { x: c };${newline}console.log(mod1);${newline}`,
         );
       },
     });
@@ -939,11 +1041,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nconst b1 = "x";\nconsole.log(mod, b1);\n`,
+          `const b = "b";${newline}const mod = { b };${newline}const b1 = "x";${newline}console.log(mod, b1);${newline}`,
         );
       },
     });
@@ -971,11 +1077,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nconst mod1 = "mod";\nconsole.log(mod, mod1);\n`,
+          `const b = "b";${newline}const mod = { b };${newline}const mod1 = "mod";${newline}console.log(mod, mod1);${newline}`,
         );
       },
     });
@@ -1002,11 +1112,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const mod = "mod";\nconst mod1 = { mod };\nconsole.log(mod1);\n`,
+          `const mod = "mod";${newline}const mod1 = { mod };${newline}console.log(mod1);${newline}`,
         );
       },
     });
@@ -1041,7 +1155,10 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `const b = "b";\nconsole.log(b);\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}console.log(b);${newline}`,
+        );
       },
     });
 
@@ -1075,7 +1192,10 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `const b = "b";\nconsole.log(b);\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}console.log(b);${newline}`,
+        );
       },
     });
 
@@ -1118,7 +1238,7 @@ Deno.test({
 
         assertEquals(
           result,
-          `const c = "c";\nconsole.log("b", c);\nconsole.log("a", c);\n`,
+          `const c = "c";${newline}console.log("b", c);${newline}console.log("a", c);${newline}`,
         );
       },
     });
@@ -1156,7 +1276,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import("/b.js");\n`);
+        assertEquals(result, `import("/b.js");${newline}`);
       },
     });
     await t.step({
@@ -1192,7 +1312,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `import("./" + "b.ts");\n`);
+        assertEquals(result, `import("./" + "b.ts");${newline}`);
       },
     });
   },
@@ -1251,7 +1371,10 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `interface A {\n}\n;\nexport { A };\n`);
+        assertEquals(
+          result,
+          `interface A {${newline}}${newline};${newline}export { A };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1277,7 +1400,10 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `enum A {\n}\n;\nexport { A };\n`);
+        assertEquals(
+          result,
+          `enum A {${newline}}${newline};${newline}export { A };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1314,7 +1440,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `export * from "/b.js";\n`);
+        assertEquals(result, `export * from "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -1351,7 +1477,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `export { x as default };\n`);
+        assertEquals(result, `export { x as default };${newline}`);
       },
     });
     await t.step({
@@ -1388,7 +1514,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `export * as b from "/b.js";\n`);
+        assertEquals(result, `export * as b from "/b.js";${newline}`);
       },
     });
     await t.step({
@@ -1425,7 +1551,7 @@ Deno.test({
           { root, chunks, logger },
         );
 
-        assertEquals(result, `export { b } from "/b.js";\n`);
+        assertEquals(result, `export { b } from "/b.js";${newline}`);
       },
     });
   },
@@ -1457,9 +1583,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `type b = string;\nexport { b };\n`);
+        assertEquals(
+          result,
+          `type b = string;${newline}export { b };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1486,9 +1619,13 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nexport { b };\n`);
+        assertEquals(result, `const b = "b";${newline}export { b };${newline}`);
       },
     });
     await t.step({
@@ -1515,9 +1652,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nexport { b as a };\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}export { b as a };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1544,9 +1688,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nexport { x as b };\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}export { x as b };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1573,9 +1724,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const b = "b";\nexport { b as a };\n`);
+        assertEquals(
+          result,
+          `const b = "b";${newline}export { b as a };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1602,9 +1760,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nexport { x as a };\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}export { x as a };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1637,9 +1802,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nexport { x as a };\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}export { x as a };${newline}`,
+        );
       },
     });
     await t.step({
@@ -1666,9 +1838,16 @@ Deno.test({
         };
 
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
-        assertEquals(result, `const x = "x";\nexport { x as a };\n`);
+        assertEquals(
+          result,
+          `const x = "x";${newline}export { x as a };${newline}`,
+        );
       },
     });
 
@@ -1695,11 +1874,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nexport { b };\n`,
+          `const b = "b";${newline}export { b };${newline}`,
         );
       },
     });
@@ -1732,11 +1915,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const c = "c";\nexport { c };\n`,
+          `const c = "c";${newline}export { c };${newline}`,
         );
       },
     });
@@ -1769,11 +1956,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const c = "c";\nconst mod = { c };\nexport { mod as b };\n`,
+          `const c = "c";${newline}const mod = { c };${newline}export { mod as b };${newline}`,
         );
       },
     });
@@ -1801,11 +1992,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const x = "x";\nexport { x as b };\n`,
+          `const x = "x";${newline}export { x as b };${newline}`,
         );
       },
     });
@@ -1832,11 +2027,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst b1 = "a";\nconsole.log(b1);\nexport { b };\n`,
+          `const b = "b";${newline}const b1 = "a";${newline}console.log(b1);${newline}export { b };${newline}`,
         );
       },
     });
@@ -1864,11 +2063,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nconst mod1 = "mod";\nconsole.log(mod1);\nexport { mod as b };\n`,
+          `const b = "b";${newline}const mod = { b };${newline}const mod1 = "mod";${newline}console.log(mod1);${newline}export { mod as b };${newline}`,
         );
       },
     });
@@ -1895,11 +2098,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nexport { mod as a };\n`,
+          `const b = "b";${newline}const mod = { b };${newline}export { mod as a };${newline}`,
         );
       },
     });
@@ -1926,11 +2133,15 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
 
         assertEquals(
           result,
-          `const b = "b";\nconst mod = { b };\nexport { mod as a };\n`,
+          `const b = "b";${newline}const mod = { b };${newline}export { mod as a };${newline}`,
         );
       },
     });
@@ -1970,7 +2181,7 @@ Deno.test({
       chunk,
       { root, chunks, logger },
     );
-    assertEquals(result, `const worker = new Worker("/b.js");\n`);
+    assertEquals(result, `const worker = new Worker("/b.js");${newline}`);
   },
 });
 Deno.test({
@@ -2007,7 +2218,7 @@ Deno.test({
       chunk,
       { root, chunks, logger },
     );
-    assertEquals(result, `fetch("/b.js");\n`);
+    assertEquals(result, `fetch("/b.js");${newline}`);
   },
 });
 Deno.test({
@@ -2044,7 +2255,10 @@ Deno.test({
       chunk,
       { root, chunks, logger },
     );
-    assertEquals(result, `navigator.serviceWorker.register("/b.js");\n`);
+    assertEquals(
+      result,
+      `navigator.serviceWorker.register("/b.js");${newline}`,
+    );
   },
 });
 Deno.test({
@@ -2085,7 +2299,7 @@ Deno.test({
         );
         assertEquals(
           result,
-          `import json from "/b.json" assert { type: "json" };\n`,
+          `import json from "/b.json" assert { type: "json" };${newline}`,
         );
       },
     });
@@ -2112,10 +2326,14 @@ Deno.test({
           output: "file:///dist/a.js",
         };
         const chunks: Chunk[] = [];
-        const result = injectDependencies(chunk, { root, chunks, logger });
+        const result = injectDependencies(chunk, {
+          root,
+          chunks,
+          logger,
+        });
         assertEquals(
           result,
-          `const json = JSON.parse(\`{ "foo": "bar" }\`);\n`,
+          `const json = JSON.parse(\`{ "foo": "bar" }\`);${newline}`,
         );
       },
     });
@@ -2159,7 +2377,7 @@ Deno.test({
         );
         assertEquals(
           result,
-          `import css from "/b.css" assert { type: "css" };\n`,
+          `import css from "/b.css" assert { type: "css" };${newline}`,
         );
       },
     });
@@ -2192,7 +2410,7 @@ Deno.test({
         );
         assertEquals(
           result,
-          `const css = new CSSStyleSheet();\ncss.replaceSync(\`h1 { color: red; }\`);\n`,
+          `const css = new CSSStyleSheet();${newline}css.replaceSync(\`h1 { color: red; }\`);${newline}`,
         );
       },
     });

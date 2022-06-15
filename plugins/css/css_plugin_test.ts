@@ -3,6 +3,7 @@ import { Bundler } from "../../bundler.ts";
 import { Asset, DependencyFormat, DependencyType } from "../plugin.ts";
 import { CSSPlugin } from "./css_plugin.ts";
 import { path } from "../../deps.ts";
+import { newline } from "../../_util.ts";
 
 const plugin = new CSSPlugin();
 
@@ -14,8 +15,30 @@ const testdataDir = path.resolve(moduleDir, "../../testdata");
 Deno.test({
   name: "test",
   fn() {
-    assertEquals(plugin.test(".css", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".scss", DependencyType.ImportExport), false);
+    assertEquals(
+      plugin.test(
+        "file.css",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.scss",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      false,
+    );
+    assertEquals(
+      plugin.test(
+        "file.style",
+        DependencyType.ImportExport,
+        DependencyFormat.Style,
+      ),
+      true,
+    );
   },
 });
 
@@ -29,7 +52,11 @@ Deno.test({
           path.toFileUrl(path.join(testdataDir, "/css/linear/a.css")).href;
         const b =
           path.toFileUrl(path.join(testdataDir, "/css/linear/b.css")).href;
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -42,7 +69,8 @@ Deno.test({
             },
           ],
           exports: {},
-          source: '@import "./b.css";\n\nh1 {\n  font-family: Helvetica;\n}',
+          source:
+            `@import "./b.css";${newline}${newline}h1 {${newline}  font-family: Helvetica;${newline}}`,
         });
       },
     });
@@ -55,7 +83,11 @@ Deno.test({
           "../../testdata/css/image/image.png",
           import.meta.url,
         );
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -68,11 +100,11 @@ Deno.test({
             },
           ],
           exports: {},
-          source: 'div {\n  background-image: url("./image.png");\n}',
+          source:
+            `div {${newline}  background-image: url("./image.png");${newline}}`,
         });
       },
     });
-
     await t.step({
       name: "nesting",
       async fn() {
@@ -85,7 +117,8 @@ Deno.test({
           format: DependencyFormat.Style,
           dependencies: [],
           exports: {},
-          source: "\n  div > h1 {\n    font-family: Helvetica;\n  }",
+          source:
+            `${newline}  div > h1 {${newline}    font-family: Helvetica;${newline}  }`,
         }]);
       },
     });
@@ -105,10 +138,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -130,13 +165,14 @@ Deno.test({
               format: DependencyFormat.Style,
               input: b,
               type: DependencyType.ImportExport,
-              source: `h1 {\n  color: green;\n}`,
+              source: `h1 {${newline}  color: green;${newline}}`,
             },
           ],
           item: {
             format: DependencyFormat.Style,
             input: a,
-            source: '@import "./b.css";\n\nh1 {\n  font-family: Helvetica;\n}',
+            source:
+              `@import "./b.css";${newline}${newline}h1 {${newline}  font-family: Helvetica;${newline}}`,
             type: DependencyType.ImportExport,
           },
           output: await plugin.createOutput(a, "dist", ".css"),
@@ -154,6 +190,7 @@ Deno.test({
         const asset = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const assetB: Asset = {
@@ -183,7 +220,8 @@ Deno.test({
           item: {
             format: DependencyFormat.Style,
             input: a,
-            source: 'div {\n  background-image: url("./image.png");\n}',
+            source:
+              `div {${newline}  background-image: url("./image.png");${newline}}`,
             type: DependencyType.ImportExport,
           },
           output: await plugin.createOutput(a, "dist", ".css"),
@@ -206,10 +244,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -229,7 +269,7 @@ Deno.test({
         assertEquals(bundle, {
           output: await plugin.createOutput(a, "dist", ".css"),
           source:
-            "h1 {\n  color: green;\n}\n\nh1 {\n  font-family: Helvetica;\n}",
+            `h1 {${newline}  color: green;${newline}}${newline}${newline}h1 {${newline}  font-family: Helvetica;${newline}}`,
         });
       },
     });
@@ -246,10 +286,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -274,7 +316,7 @@ Deno.test({
         assertEquals(bundle, {
           output: await plugin.createOutput(a, "dist", ".css"),
           source:
-            "h1 {\n  color: green;\n}\n\nh1 {\n  font-family: Helvetica;\n}",
+            `h1 {${newline}  color: green;${newline}}${newline}${newline}h1 {${newline}  font-family: Helvetica;${newline}}`,
         });
       },
     });
@@ -289,6 +331,7 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const assetB: Asset = {
@@ -304,18 +347,20 @@ Deno.test({
         const chunk = await bundler.createChunk(assetA, chunkAssets, {
           assets: [assetA, assetB],
         });
+        const chunkB = {
+          item: { ...assetB },
+          output: "file:///dist/image.png",
+          dependencyItems: [],
+        };
 
         const bundle = await bundler.createBundle(chunk, {
-          chunks: [chunk, {
-            item: { ...assetB },
-            output: "file:///dist/image.png",
-            dependencyItems: [],
-          }],
+          chunks: [chunk, chunkB],
         });
 
         assertEquals(bundle, {
           output: await plugin.createOutput(a, "dist", ".css"),
-          source: 'div {\n  background-image: url("/image.png");\n}',
+          source:
+            `div {${newline}  background-image: url("/image.png");${newline}}`,
         });
       },
     });

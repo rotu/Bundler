@@ -29,16 +29,6 @@ import {
 import { Asset, Bundle, Chunk } from "./plugins/plugin.ts";
 import { Logger } from "./log/logger.ts";
 
-const plugins = [
-  new HTMLPlugin(),
-  new CSSPlugin(),
-  new TypescriptPlugin(),
-  new JSONPlugin(),
-  new WebManifestPlugin(),
-  new TerserPlugin(),
-  new FilePlugin(),
-];
-
 async function writeBundles(bundler: Bundler, bundles: Bundle[]) {
   const time = performance.now();
   for (const bundle of bundles) {
@@ -85,9 +75,9 @@ function parseBundleArgs(args: flags.Args) {
   const outputMap = Object.fromEntries(_.map((entry) => {
     let { input, output } = regex.exec(entry as string)?.groups || {};
     if (!isURL(input)) {
-      input = new URL(path.resolve(Deno.cwd(), input), "file://").href;
+      input = path.toFileUrl(path.resolve(Deno.cwd(), input)).href;
     }
-    if (output) output = new URL(path.join(root, output), "file://").href;
+    if (output) output = path.toFileUrl(path.join(root, output)).href;
     return [input, output];
   }));
 
@@ -138,7 +128,7 @@ async function exists(filename: string) {
     await Deno.stat(filename);
     return true;
   } catch (error) {
-    if (error.kind === Deno.errors.NotFound) {
+    if (error instanceof Deno.errors.NotFound) {
       return false;
     }
     throw error;
@@ -159,7 +149,7 @@ async function bundleCommand(args: flags.Args) {
     config,
   } = parseBundleArgs(args);
 
-  let compilerOptions: ts.CompilerOptions;
+  let compilerOptions: ts.CompilerOptions = {};
   let importMap: ImportMap;
 
   const denoJsonPath = path.join(Deno.cwd(), "deno.json");
@@ -183,9 +173,19 @@ async function bundleCommand(args: flags.Args) {
     const resolvedImportMapPath = path.resolve(Deno.cwd(), importMapPath);
     importMap = resolveImportMap(
       JSON.parse(await Deno.readTextFile(resolvedImportMapPath)),
-      new URL(resolvedImportMapPath, "file://"),
+      path.toFileUrl(resolvedImportMapPath),
     );
   }
+
+  const plugins = [
+    new HTMLPlugin(),
+    new CSSPlugin(),
+    new TypescriptPlugin(compilerOptions),
+    new JSONPlugin(),
+    new WebManifestPlugin(),
+    new TerserPlugin(),
+    new FilePlugin(),
+  ];
 
   const bundler = new Bundler({ plugins, logLevel, quiet });
 
@@ -202,26 +202,42 @@ async function bundleCommand(args: flags.Args) {
       //   await Deno.remove(cachedAssetFilepath);
       //   continue;
       // }
-      const source = await Deno.readTextFile(
-        path.join(cacheAssetsDir, dirEntry.name),
-      );
+      const source = await Deno.readTextFile(cachedAssetFilepath);
       const asset: Asset = JSON.parse(source);
+
       let cacheExpired = false;
       if (isFileURL(asset.input)) {
-        const input = path.fromFileUrl(asset.input);
-        const assetStat = await Deno.lstat(input);
-        const cachedAssetFileStat = await Deno.lstat(cachedAssetFilepath);
-        if (cachedAssetFileStat.mtime && assetStat.mtime) {
-          cacheExpired = cachedAssetFileStat.mtime < assetStat.mtime;
+        try {
+          const input = path.fromFileUrl(asset.input);
+          const assetStat = await Deno.lstat(input);
+          const cachedAssetFileStat = await Deno.lstat(cachedAssetFilepath);
+          if (cachedAssetFileStat.mtime && assetStat.mtime) {
+            cacheExpired = cachedAssetFileStat.mtime < assetStat.mtime;
+          }
+        } catch (error) {
+          if (!(error instanceof Deno.errors.NotFound)) {
+            throw error;
+          }
         }
       }
 
       if (!cacheExpired) {
-        if (asset.source === null) {
-          asset.source = await Deno.readFileSync(asset.input).buffer;
+        try {
+          if (asset.source === null) {
+            asset.source = await Deno.readFileSync(
+              path.fromFileUrl(asset.input),
+            ).buffer;
+          }
+          cachedAssets[asset.input] = asset;
+          continue;
+        } catch (error) {
+          if (!(error instanceof Deno.errors.NotFound)) {
+            throw error;
+          }
         }
         cachedAssets[asset.input] = asset;
       }
+      await Deno.remove(cachedAssetFilepath);
     }
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) {
@@ -239,7 +255,6 @@ async function bundleCommand(args: flags.Args) {
       assets: Object.values(cachedAssets),
       chunks: Object.values(cachedChunks),
       importMap,
-      compilerOptions,
     });
 
     cachedAssets = {

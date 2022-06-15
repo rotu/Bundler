@@ -1,5 +1,5 @@
 import { Bundler } from "../bundler.ts";
-import { colors, ImportMap, ts } from "../deps.ts";
+import { colors, ImportMap } from "../deps.ts";
 import { timestamp } from "../_util.ts";
 
 export enum DependencyType {
@@ -11,6 +11,7 @@ export enum DependencyType {
   WebManifest = "WebManifest",
 }
 export enum DependencyFormat {
+  Unknown = "Unknown",
   Html = "Html",
   Style = "Style",
   Script = "Script",
@@ -69,7 +70,6 @@ export interface CreateAssetsContext extends Context {
   importMap?: ImportMap;
   reload?: boolean | string[];
   assets?: Asset[];
-  compilerOptions?: ts.CompilerOptions;
 }
 export interface CreateAssetContext extends CreateAssetsContext {
   assets: Asset[];
@@ -91,7 +91,6 @@ export interface CreateBundlesContext extends Context {
   importMap?: ImportMap;
   optimize?: boolean;
 }
-export type TransformAssetContext = CreateAssetContext;
 
 export interface CreateBundleContext extends CreateBundlesContext {
   chunks: Chunk[];
@@ -149,6 +148,7 @@ export abstract class Plugin {
   abstract test(
     input: string,
     type: DependencyType,
+    format: DependencyFormat,
   ): Promise<boolean> | boolean;
 
   getSource?(
@@ -156,11 +156,7 @@ export abstract class Plugin {
     type: DependencyType,
     context: CreateAssetContext,
   ): Promise<Source> | Source;
-  transformAsset?(
-    input: string,
-    source: Source,
-    context: TransformAssetContext,
-  ): Promise<Source> | Source;
+
   createAsset?(
     input: string,
     type: DependencyType,

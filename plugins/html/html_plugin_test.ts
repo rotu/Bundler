@@ -3,6 +3,7 @@ import { Bundler } from "../../bundler.ts";
 import { Asset, DependencyFormat, DependencyType } from "../plugin.ts";
 import { HTMLPlugin } from "./html_plugin.ts";
 import { path } from "../../deps.ts";
+import { newline } from "../../_util.ts";
 
 const plugin = new HTMLPlugin();
 
@@ -14,9 +15,26 @@ const testdataDir = path.resolve(moduleDir, "../../testdata");
 Deno.test({
   name: "test",
   fn() {
-    assertEquals(plugin.test(".html", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".html", DependencyType.Fetch), true);
-    assertEquals(plugin.test(".xml", DependencyType.Fetch), false);
+    assertEquals(
+      plugin.test(
+        "file.html",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test("file.html", DependencyType.Fetch, DependencyFormat.Unknown),
+      true,
+    );
+    assertEquals(
+      plugin.test("file.xml", DependencyType.Fetch, DependencyFormat.Unknown),
+      false,
+    );
+    assertEquals(
+      plugin.test("file.xml", DependencyType.Fetch, DependencyFormat.Html),
+      true,
+    );
   },
 });
 
@@ -32,7 +50,11 @@ Deno.test({
         const b = path.toFileUrl(
           path.join(testdataDir, "html/script/index.ts"),
         ).href;
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -46,7 +68,7 @@ Deno.test({
           ],
           exports: {},
           source:
-            '<html>\n  <head>\n    <script src="index.ts"></script>\n  </head>\n  <body>\n  </body>\n</html>',
+            `<html>${newline}  <head>${newline}    <script src="index.ts"></script>${newline}  </head>${newline}  <body>${newline}  </body>${newline}</html>`,
         });
       },
     });
@@ -60,7 +82,11 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "html/link/style.css")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -74,7 +100,7 @@ Deno.test({
           ],
           exports: {},
           source:
-            '<html>\n  <head>\n    <link rel="stylesheet" href="style.css">\n  </head>\n  <body>\n  </body>\n</html>',
+            `<html>${newline}  <head>${newline}    <link rel="stylesheet" href="style.css">${newline}  </head>${newline}  <body>${newline}  </body>${newline}</html>`,
         });
       },
     });
@@ -91,7 +117,11 @@ Deno.test({
           path.join(testdataDir, "html/script/index.html"),
         ).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
 
         const chunkAssets: Set<Asset> = new Set();
         const chunk = await bundler.createChunk(asset, chunkAssets);
@@ -101,7 +131,7 @@ Deno.test({
             format: DependencyFormat.Html,
             input: a,
             source:
-              '<html>\n  <head>\n    <script src="index.ts"></script>\n  </head>\n  <body>\n  </body>\n</html>',
+              `<html>${newline}  <head>${newline}    <script src="index.ts"></script>${newline}  </head>${newline}  <body>${newline}  </body>${newline}</html>`,
             type: DependencyType.ImportExport,
           },
           output: await plugin.createOutput(a, "dist", ".html"),
@@ -116,7 +146,11 @@ Deno.test({
           path.join(testdataDir, "html/link/index.html"),
         ).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
 
         const chunkAssets: Set<Asset> = new Set();
         const chunk = await bundler.createChunk(asset, chunkAssets);
@@ -126,7 +160,7 @@ Deno.test({
             format: DependencyFormat.Html,
             input: a,
             source:
-              '<html>\n  <head>\n    <link rel="stylesheet" href="style.css">\n  </head>\n  <body>\n  </body>\n</html>',
+              `<html>${newline}  <head>${newline}    <link rel="stylesheet" href="style.css">${newline}  </head>${newline}  <body>${newline}  </body>${newline}</html>`,
             type: DependencyType.ImportExport,
           },
           output: await plugin.createOutput(a, "dist", ".html"),
@@ -149,7 +183,11 @@ Deno.test({
           path.join(testdataDir, "html/script/index.ts"),
         ).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         const chunkAssets: Set<Asset> = new Set();
         const chunk = await bundler.createChunk(asset, chunkAssets);
         const chunkB = {
@@ -168,7 +206,7 @@ Deno.test({
         assertEquals(bundle, {
           output: await plugin.createOutput(a, "dist", ".html"),
           source:
-            '<html>\n  <head>\n    <script src="/index.js"></script>\n  </head>\n  <body>\n  </body>\n</html>',
+            `<html>${newline}  <head>${newline}    <script src="/index.js"></script>${newline}  </head>${newline}  <body>${newline}  </body>${newline}</html>`,
         });
       },
     });

@@ -26,6 +26,7 @@ export interface InjectDependenciesContext {
   chunks: Chunk[];
   logger: ConsoleLogger;
   importMap?: ImportMap;
+  compilerOptions?: ts.CompilerOptions;
 }
 
 function getModName(
@@ -43,8 +44,13 @@ function getModName(
 function transform(
   sourceFile: ts.SourceFile,
   transfomers: ts.TransformerFactory<ts.SourceFile>[],
+  compilerOptions?: ts.CompilerOptions,
 ) {
-  const { transformed } = ts.transform(sourceFile, transfomers);
+  const { transformed } = ts.transform(
+    sourceFile,
+    transfomers,
+    compilerOptions,
+  );
   return transformed[0];
 }
 
@@ -751,7 +757,7 @@ export function injectDependenciesFromSourceFile(
       },
       removeModifiersTransformer(exportMap, blacklistIdentifiers),
       injectIdentifiersTransformer(injectIdentifiers, blacklistIdentifiers),
-    ]);
+    ], context.compilerOptions);
 
     statements.push(...result.statements);
 

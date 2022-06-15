@@ -3,6 +3,7 @@ import { Bundler } from "../../bundler.ts";
 import { Asset, DependencyFormat, DependencyType } from "../plugin.ts";
 import { TypescriptPlugin } from "./typescript_plugin.ts";
 import { path } from "../../deps.ts";
+import { newline } from "../../_util.ts";
 
 const plugin = new TypescriptPlugin();
 
@@ -14,12 +15,62 @@ const testdataDir = path.resolve(moduleDir, "../../testdata");
 Deno.test({
   name: "test",
   fn() {
-    const plugin = new TypescriptPlugin();
-    assertEquals(plugin.test(".js", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".ts", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".jsx", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".tsx", DependencyType.ImportExport), true);
-    assertEquals(plugin.test(".json", DependencyType.ImportExport), false);
+    assertEquals(
+      plugin.test(
+        "file.js",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.ts",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.mjs",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      false,
+    );
+    assertEquals(
+      plugin.test(
+        "file.mjs",
+        DependencyType.ImportExport,
+        DependencyFormat.Script,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.jsx",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.tsx",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      true,
+    );
+    assertEquals(
+      plugin.test(
+        "file.json",
+        DependencyType.ImportExport,
+        DependencyFormat.Unknown,
+      ),
+      false,
+    );
   },
 });
 
@@ -34,7 +85,11 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "typescript/linear/b.ts")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -50,7 +105,8 @@ Deno.test({
             },
           ],
           exports: {},
-          source: 'import { b } from "./b.ts";\n\nconsole.log(b);\n',
+          source:
+            `import { b } from "./b.ts";${newline}console.log(b);${newline}`,
         });
       },
     });
@@ -65,7 +121,11 @@ Deno.test({
           path.toFileUrl(path.join(testdataDir, "typescript/circular/b.ts"))
             .href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -86,7 +146,7 @@ Deno.test({
             },
           },
           source:
-            'import { b } from "./b.ts";\n\nconsole.log(b);\n\nexport const a = "a";\n',
+            `import { b } from "./b.ts";${newline}console.log(b);${newline}export const a = "a";${newline}`,
         });
       },
     });
@@ -101,7 +161,11 @@ Deno.test({
           path.toFileUrl(path.join(testdataDir, "typescript/circular/b.ts"))
             .href;
 
-        const asset = await bundler.createAsset(b, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          b,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: b,
           type: DependencyType.ImportExport,
@@ -122,7 +186,7 @@ Deno.test({
             },
           },
           source:
-            'import { a } from "./a.ts";\n\nconsole.log(a);\n\nexport const b = "b";\n',
+            `import { a } from "./a.ts";${newline}console.log(a);${newline}export const b = "b";${newline}`,
         });
       },
     });
@@ -136,7 +200,11 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "typescript/double/b.ts")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -161,7 +229,7 @@ Deno.test({
           ],
           exports: {},
           source:
-            'import { b } from "./b.ts";\nimport { b as c } from "./b.ts";\n\nconsole.log(b, c);\n',
+            `import { b } from "./b.ts";${newline}import { b as c } from "./b.ts";${newline}console.log(b, c);${newline}`,
         });
       },
     });
@@ -174,7 +242,11 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "typescript/double/b.ts")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -199,7 +271,7 @@ Deno.test({
           ],
           exports: {},
           source:
-            'export { b } from "./b.ts";\nexport { b as c } from "./b.ts";\n',
+            `export { b } from "./b.ts";${newline}export { b as c } from "./b.ts";${newline}`,
         });
       },
     });
@@ -212,7 +284,11 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "typescript/fetch/b.ts")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         assertEquals(asset, {
           input: a,
           type: DependencyType.ImportExport,
@@ -225,7 +301,8 @@ Deno.test({
             },
           ],
           exports: {},
-          source: `const b = await fetch("./b.ts");\nconsole.log(b);\n`,
+          source:
+            `const b = await fetch("./b.ts");${newline}console.log(b);${newline}`,
         });
       },
     });
@@ -243,11 +320,16 @@ Deno.test({
         const b =
           path.toFileUrl(path.join(testdataDir, "typescript/linear/b.ts")).href;
 
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
 
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const chunkAssets: Set<Asset> = new Set();
         const chunk = await bundler.createChunk(asset, chunkAssets, {
@@ -261,18 +343,18 @@ Deno.test({
             input: a,
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
-            source: 'import { b } from "./b.ts";\n\nconsole.log(b);\n',
+            source:
+              `import { b } from "./b.ts";${newline}console.log(b);${newline}`,
           },
           dependencyItems: [
             {
               input: b,
               type: DependencyType.ImportExport,
               format: DependencyFormat.Script,
-              source: 'export const b = "b";\n',
+              source: `export const b = "b";${newline}`,
             },
           ],
-          output:
-            "file:///dist/73617db6b7cc169d9880bf262c334bab989bb83ca4050264a7fd7e79c9579dd4.js",
+          output: await plugin.createOutput(a, "dist", ".js"),
         });
       },
     });
@@ -286,14 +368,20 @@ Deno.test({
           path.toFileUrl(path.join(testdataDir, "typescript/chain/b.ts")).href;
         const c =
           path.toFileUrl(path.join(testdataDir, "typescript/chain/c.ts")).href;
-        const asset = await bundler.createAsset(a, DependencyType.ImportExport);
+        const asset = await bundler.createAsset(
+          a,
+          DependencyType.ImportExport,
+          DependencyFormat.Unknown,
+        );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetC = await bundler.createAsset(
           c,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const chunkAssets: Set<Asset> = new Set();
         const chunk = await bundler.createChunk(asset, chunkAssets, {
@@ -307,7 +395,8 @@ Deno.test({
             input: a,
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
-            source: 'import { b } from "./b.ts";\n\nconsole.log(b);\n',
+            source:
+              `import { b } from "./b.ts";${newline}console.log(b);${newline}`,
           },
           dependencyItems: [
             {
@@ -315,17 +404,16 @@ Deno.test({
               type: DependencyType.ImportExport,
               format: DependencyFormat.Script,
               source:
-                'import { c } from "./c.ts";\n\nconsole.log(c);\n\nexport const b = "b";\n',
+                `import { c } from "./c.ts";${newline}console.log(c);${newline}export const b = "b";${newline}`,
             },
             {
               format: DependencyFormat.Script,
               input: c,
-              source: 'export const c = "c";\n',
+              source: `export const c = "c";${newline}`,
               type: DependencyType.ImportExport,
             },
           ],
-          output:
-            "file:///dist/7c73a4e48a92bf09ae88a5ba220d6f68a5ae634f5447c8617b35c19c90554951.js",
+          output: await plugin.createOutput(a, "dist", ".js"),
         });
       },
     });
@@ -343,10 +431,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -367,7 +457,7 @@ Deno.test({
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
             source:
-              'import { b } from "./b.ts";\n\nconsole.log(b);\n\nexport const a = "a";\n',
+              `import { b } from "./b.ts";${newline}console.log(b);${newline}export const a = "a";${newline}`,
           },
           dependencyItems: [
             {
@@ -375,11 +465,10 @@ Deno.test({
               type: DependencyType.ImportExport,
               format: DependencyFormat.Script,
               source:
-                'import { a } from "./a.ts";\n\nconsole.log(a);\n\nexport const b = "b";\n',
+                `import { a } from "./a.ts";${newline}console.log(a);${newline}export const b = "b";${newline}`,
             },
           ],
-          output:
-            "file:///dist/e5e6b50d3a820edecb2e4674aa65f925887e6627b23392eab02fdccc7f387582.js",
+          output: await plugin.createOutput(a, "dist", ".js"),
         });
       },
     });
@@ -397,10 +486,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -421,7 +512,7 @@ Deno.test({
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
             source:
-              'import { a } from "./a.ts";\n\nconsole.log(a);\n\nexport const b = "b";\n',
+              `import { a } from "./a.ts";${newline}console.log(a);${newline}export const b = "b";${newline}`,
           },
           dependencyItems: [
             {
@@ -429,11 +520,10 @@ Deno.test({
               type: DependencyType.ImportExport,
               format: DependencyFormat.Script,
               source:
-                'import { b } from "./b.ts";\n\nconsole.log(b);\n\nexport const a = "a";\n',
+                `import { b } from "./b.ts";${newline}console.log(b);${newline}export const a = "a";${newline}`,
             },
           ],
-          output:
-            "file:///dist/270d0205bc4298fa83012c97628ed5b30dd2e39a7d9ecfe73884e06245c59ef7.js",
+          output: await plugin.createOutput(b, "dist", ".js"),
         });
       },
     });
@@ -450,10 +540,12 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
         const assetB = await bundler.createAsset(
           b,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
 
         const chunkContext = {
@@ -474,18 +566,17 @@ Deno.test({
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
             source:
-              'import { b } from "./b.ts";\nimport { b as c } from "./b.ts";\n\nconsole.log(b, c);\n',
+              `import { b } from "./b.ts";${newline}import { b as c } from "./b.ts";${newline}console.log(b, c);${newline}`,
           },
           dependencyItems: [
             {
               input: b,
               type: DependencyType.ImportExport,
               format: DependencyFormat.Script,
-              source: 'export const b = "b";\n',
+              source: `export const b = "b";${newline}`,
             },
           ],
-          output:
-            "file:///dist/44183887a9c72a7ed9a8e01114210e170b07faf9e7d2eb7d4815d3536390776b.js",
+          output: await plugin.createOutput(a, "dist", ".js"),
         });
       },
     });
@@ -501,8 +592,13 @@ Deno.test({
         const assetA = await bundler.createAsset(
           a,
           DependencyType.ImportExport,
+          DependencyFormat.Unknown,
         );
-        const assetB = await bundler.createAsset(b, DependencyType.Fetch);
+        const assetB = await bundler.createAsset(
+          b,
+          DependencyType.Fetch,
+          DependencyFormat.Unknown,
+        );
 
         const chunkContext = {
           bundler,
@@ -522,11 +618,11 @@ Deno.test({
             input: a,
             type: DependencyType.ImportExport,
             format: DependencyFormat.Script,
-            source: 'const b = await fetch("./b.ts");\nconsole.log(b);\n',
+            source:
+              `const b = await fetch("./b.ts");${newline}console.log(b);${newline}`,
           },
           dependencyItems: [],
-          output:
-            "file:///dist/ec42f7d24424d9f45cbceb255b43395234edda32938a3d4f6c2e3eca60bc174f.js",
+          output: await plugin.createOutput(a, "dist", ".js"),
         });
       },
     });
@@ -546,9 +642,8 @@ Deno.test({
         const bundles = await bundler.createBundles(chunks);
         assertEquals(bundles, [
           {
-            output:
-              "file:///dist/110d55de4196564d60bddda37af5e920bd8acce3c57baece085c57d002e401e9.js",
-            source: 'console.log("hello world");\n',
+            output: await plugin.createOutput(a, "dist", ".js"),
+            source: `console.log("hello world");${newline}`,
           },
         ]);
       },
@@ -566,9 +661,8 @@ Deno.test({
 
         assertEquals(bundles, [
           {
-            output:
-              "file:///dist/73617db6b7cc169d9880bf262c334bab989bb83ca4050264a7fd7e79c9579dd4.js",
-            source: 'const b = "b";\nconsole.log(b);\n',
+            output: await plugin.createOutput(a, "dist", ".js"),
+            source: `const b = "b";${newline}console.log(b);${newline}`,
           },
         ]);
       },
@@ -589,7 +683,7 @@ Deno.test({
     //         output:
     //           "file:///dist/7c73a4e48a92bf09ae88a5ba220d6f68a5ae634f5447c8617b35c19c90554951.js",
     //         source:
-    //           'const mod1 = (() => {\n    const c = "c";\n    return { c };\n})();\nconst mod2 = (() => {\n    const { c } = mod1;\n    console.log(c);\n    const b = "b";\n    return { b };\n})();\nconst { b } = mod2;\nconsole.log(b);\n',
+    //           'const mod1 = (() => {${newline}    const c = "c";${newline}    return { c };${newline}})();${newline}const mod2 = (() => {${newline}    const { c } = mod1;${newline}    console.log(c);${newline}    const b = "b";${newline}    return { b };${newline}})();${newline}const { b } = mod2;${newline}console.log(b);${newline}',
     //       },
     //     ]);
     //   },
